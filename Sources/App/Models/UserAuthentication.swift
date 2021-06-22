@@ -31,6 +31,7 @@
 /// THE SOFTWARE.
 
 import Foundation
+import Vapor
 
 var currentUser: UserAuthentication?
 
@@ -39,3 +40,6 @@ struct UserAuthentication: Codable {
   var email: String?
   var password: String?
 }
+
+extension UserAuthentication: Content { }
+
