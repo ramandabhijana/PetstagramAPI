@@ -30,15 +30,32 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 /// THE SOFTWARE.
 
-import Foundation
+import Fluent
 import Vapor
 
-var currentUser: UserAuthentication?
-
-struct UserAuthentication: Codable {
-  var id: String
-  var email: String?
-  var password: String?
+final class UserAuthentication: Model {
+  
+  static var schema: String = "users"
+  
+  init() {}
+  
+  init(id: String?,
+       email: String,
+       password: String) {
+    self.id = id
+    self.email = email
+    self.password = password
+  }
+  
+  @ID(custom: "id")
+  var id: String?
+  
+  @Field(key: "email")
+  var email: String
+  
+  @Field(key: "password")
+  var password: String
+  
 }
 
 extension UserAuthentication: Content { }

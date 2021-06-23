@@ -6,30 +6,30 @@
 //
 
 import Vapor
-
-var users: [UserAuthentication] = []
+import Fluent
 
 struct UserController: RouteCollection {
   func boot(routes: RoutesBuilder) throws {
     let userRoutes = routes.grouped("api", "v1", "user")
-    
     userRoutes.post(use: createUser)
     userRoutes.get(use: getUser)
   }
   
   func createUser(_ req: Request) throws -> EventLoopFuture<UserAuthentication> {
     let user = try req.content.decode(UserAuthentication.self)
-    users.append(user)
-    return req.eventLoop.future(user)
+    return user.save(on: req.db).map {
+      user.password = ""
+      return user
+    }
   }
   
   func getUser(_ req: Request) throws -> EventLoopFuture<UserAuthentication> {
     let params = try req.query.decode(UserParams.self)
-    guard let foundUser = users.first(where: { $0.id ==  params.id}),
-          foundUser.password == params.password else {
-      throw Abort(.unauthorized)
-    }
-    return req.eventLoop.future(foundUser)
+    return UserAuthentication.query(on: req.db)
+      .filter(\.$id == params.id)
+      .filter(\.$password == params.password)
+      .first()
+      .unwrap(or: Abort(.unauthorized))
   }
 }
 

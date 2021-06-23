@@ -32,12 +32,20 @@ struct ImageController: RouteCollection {
       }
   }
   
-  func getPostImageHandler(_ req: Request) throws -> EventLoopFuture<ImageUploadData> {
+//  func getPostImageHandler(_ req: Request) throws -> EventLoopFuture<ImageUploadData> {
+  func getPostImageHandler(_ req: Request) throws -> EventLoopFuture<Response> {
     let params = try req.query.decode(PostImageParams.self)
     let path = req.application.directory.workingDirectory + imageFolder + params.fileName
-    return req.fileio
-      .collectFile(at: path)
-      .map { ImageUploadData(picture: .init(buffer: $0)) }
+    return req.eventLoop.future(req.fileio.streamFile(at: path))
+    
+//    return req.fileio
+//      .collectFile(at: path)
+      
+//      .readFile(at: path) {
+//        return ImageUploadData(picture: .init(buffer: $0))
+//      }
+    
+//      .map { ImageUploadData(picture: .init(buffer: $0)) }
   }
 }
 

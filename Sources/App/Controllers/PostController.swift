@@ -22,16 +22,14 @@ struct PostController: RouteCollection {
   }
   
   func getPosts(_ req: Request) -> EventLoopFuture<[Post]> {
-    return req.eventLoop.future(posts)
+    Post.query(on: req.db).all()
   }
   
   func createPost(_ req: Request) throws -> EventLoopFuture<Post> {
-    var post = try req.content.decode(Post.self)
+    let post = try req.content.decode(Post.self)
     if post.id == nil {
       post.id = UUID()
     }
-    posts.append(post)
-    print("Posts: \(posts)")
-    return req.eventLoop.future(post)
+    return post.save(on: req.db).map { post }
   }
 }

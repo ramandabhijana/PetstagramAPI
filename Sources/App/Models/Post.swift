@@ -30,16 +30,31 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 /// THE SOFTWARE.
 
-import Foundation
 import Vapor
+import Fluent
 
-struct Post: Identifiable {
+final class Post: Model {
+  
+  static var schema: String = "posts"
+  
+  @ID
   var id: UUID?
+  
+  @Field(key: "caption")
   var caption: String
+  
+  @Field(key: "created_at")
   var createdAt: Date
+  
+  @Field(key: "created_by")
   var createdByUser: String
+  
+  init() { }
 
-  init(id: UUID? = nil, caption: String, createdAt: Date = Date(), createdBy: String = currentUser?.id ?? "") {
+  init(id: UUID? = nil,
+       caption: String,
+       createdAt: Date = Date(),
+       createdBy: String = "") {
     self.id = id
     self.createdByUser = createdBy
     self.createdAt = createdAt
