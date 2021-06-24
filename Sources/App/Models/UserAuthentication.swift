@@ -39,16 +39,19 @@ final class UserAuthentication: Model {
   
   init() {}
   
-  init(id: String?,
+  init(username: String,
        email: String,
        password: String) {
-    self.id = id
+    self.username = username
     self.email = email
     self.password = password
   }
   
-  @ID(custom: "id")
-  var id: String?
+  @ID
+  var id: UUID?
+  
+  @Field(key: "username")
+  var username: String
   
   @Field(key: "email")
   var email: String
@@ -56,7 +59,56 @@ final class UserAuthentication: Model {
   @Field(key: "password")
   var password: String
   
+  final class Public: Content {
+    var username: String
+    var email: String
+
+    init(username: String, email: String) {
+      self.username = username
+      self.email = email
+    }
+  }
+  
 }
 
 extension UserAuthentication: Content { }
+
+extension UserAuthentication: ModelAuthenticatable {
+  static let usernameKey = \UserAuthentication.$username
+  static let passwordHashKey = \UserAuthentication.$password
+  
+  func verify(password: String) throws -> Bool {
+    try Bcrypt.verify(password, created: self.password)
+  }
+}
+
+extension UserAuthentication {
+  func convertToPublic() -> UserAuthentication.Public {
+    
+    return UserAuthentication.Public(username: username,
+                                     email: email)
+  }
+}
+
+
+extension EventLoopFuture where Value: UserAuthentication {
+  func convertToPublic() -> EventLoopFuture<UserAuthentication.Public> {
+    return self.map { user in
+      return user.convertToPublic()
+    }
+  }
+}
+
+
+extension Collection where Element: UserAuthentication {
+  func convertToPublic() -> [UserAuthentication.Public] {
+    return self.map { $0.convertToPublic() }
+  }
+}
+
+extension EventLoopFuture where Value == Array<UserAuthentication> {
+  func convertToPublic() -> EventLoopFuture<[UserAuthentication.Public]> {
+    return self.map { $0.convertToPublic() }
+  }
+}
 
